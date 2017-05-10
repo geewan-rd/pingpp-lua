@@ -108,11 +108,12 @@ do
         source = body and ltn12.source.string(body) or nil,
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       })
-      return self:_format_response(json.decode(table.concat(out)), status)
+      local res = pcall(json.decode, table.concat(out))
+      return self:_format_response(res, status)
     end,
     _format_response = function(self, res, status)
       if not status or status > 299 then
-        return nil, res.message, res, status
+        return nil, res and res.message, res, status
       else
         return res, status
       end

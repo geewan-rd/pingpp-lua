@@ -101,11 +101,12 @@ class Pingpp extends require "payments.base_client"
       protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 
-    @_format_response json.decode(table.concat out), status
+    res = pcall json.decode, table.concat out
+    @_format_response res, status
 
   _format_response: (res, status) =>
     if not status or status > 299
-      nil, res.message, res, status
+      nil, res and res.message, res, status
     else
       res, status
 
