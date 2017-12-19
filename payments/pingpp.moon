@@ -34,8 +34,8 @@ class Pingpp extends require "payments.base_client"
   api_url: "https://api.pingxx.com/v1/"
 
   new: (opts) =>
-    @app_id = assert opts.app_id, "missing app id"
     @api_key = assert opts.api_key, "missing api key"
+    @app_id = opts.app_id
     super opts
 
   resource = (name, resource_opts={}) ->
@@ -101,6 +101,13 @@ class Pingpp extends require "payments.base_client"
       protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
     body = table.concat out
+    if not status or status != 200 then
+      ngx.log ngx.ERR, "url: ", url
+      if params
+        ngx.log ngx.ERR, "params: ", tostring(encode_query_string(params))
+      if status
+        ngx.log ngx.ERR, "status: ", status
+      ngx.log ngx.ERR, "response: ", body
     ok, res = pcall json.decode, body
     res = {message: "bad response: #{tostring(body)\sub(1, 20)}"} unless ok
     @_format_response res, status
@@ -120,6 +127,7 @@ class Pingpp extends require "payments.base_client"
       assert opts.order_no, "missing body"
       assert opts.channel, "missing channel"
       assert opts.client_ip, "missing client ip"
+      assert @app_id, "missing app ip"
 
       opts.currency = 'cny'
       opts['app[id]'] = @app_id

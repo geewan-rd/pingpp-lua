@@ -109,6 +109,16 @@ do
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       })
       body = table.concat(out)
+      if not status or status ~= 200 then
+        ngx.log(ngx.ERR, "url: ", url)
+        if params then
+          ngx.log(ngx.ERR, "params: ", tostring(encode_query_string(params)))
+        end
+        if status then
+          ngx.log(ngx.ERR, "status: ", status)
+        end
+        ngx.log(ngx.ERR, "response: ", body)
+      end
       local ok, res = pcall(json.decode, body)
       if not (ok) then
         res = {
@@ -129,8 +139,8 @@ do
   setmetatable(_base_0, _parent_0.__base)
   _class_0 = setmetatable({
     __init = function(self, opts)
-      self.app_id = assert(opts.app_id, "missing app id")
       self.api_key = assert(opts.api_key, "missing api key")
+      self.app_id = opts.app_id
       return _class_0.__parent.__init(self, opts)
     end,
     __base = _base_0,
@@ -200,6 +210,7 @@ do
       assert(opts.order_no, "missing body")
       assert(opts.channel, "missing channel")
       assert(opts.client_ip, "missing client ip")
+      assert(self.app_id, "missing app ip")
       opts.currency = 'cny'
       opts['app[id]'] = self.app_id
       return opts
